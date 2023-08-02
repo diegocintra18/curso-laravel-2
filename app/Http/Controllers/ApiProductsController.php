@@ -11,12 +11,26 @@ class ApiProductsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $products = Products::get();
+public function index(Request $request)
+{
+    $products = Products::query();
 
-        return response($products, 200);
+    if($request->name && !empty($request->name)){
+        $products->where("name", "like", "%" . $request->name . "%");
     }
+
+    if($request->sku && !empty($request->sku)){
+        $products->where("sku", $request->sku);
+    }
+
+    if($request->active && $request->active == "true"){
+        $products->where("status", 1);
+    }
+
+    $data = $products->simplePaginate(3);
+
+    return response($data, 200);
+}
 
     /**
      * Show the form for creating a new resource.
@@ -62,7 +76,8 @@ class ApiProductsController extends Controller
         ->update([
             "name" => $request->name,
             "sku" => $request->sku,
-            "product_description" => $request->product_description
+            "product_description" => $request->product_description,
+            "status" => $request->status
         ]);
 
         if($products){
